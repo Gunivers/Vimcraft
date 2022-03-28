@@ -1,0 +1,234 @@
+package net.gunivers.vimcraft;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.chat.NarratorChatListener;
+import net.minecraft.client.gui.components.CommandSuggestions;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.protocol.game.ServerboundSetCommandBlockPacket;
+import net.minecraft.world.level.BaseCommandBlock;
+import net.minecraft.world.level.block.entity.CommandBlockEntity;
+
+public class NoButtonCommandBlockScreen extends Screen {
+
+    private static final Component SET_COMMAND_LABEL = new TranslatableComponent("advMode.setCommand");
+    private static final Component COMMAND_LABEL = new TranslatableComponent("advMode.command");
+    private static final Component PREVIOUS_OUTPUT_LABEL = new TranslatableComponent("advMode.previousOutput");
+
+    protected EditBox commandEdit;
+    protected EditBox previousEdit;
+
+    CommandSuggestions commandSuggestions;
+
+    private final CommandBlockEntity autoCommandBlock;
+    private CycleButton<CommandBlockEntity.Mode> modeButton;
+    private CycleButton<Boolean> conditionalButton;
+    private CycleButton<Boolean> autoexecButton;
+    private CommandBlockEntity.Mode mode = CommandBlockEntity.Mode.REDSTONE;
+    private boolean conditional;
+    private boolean autoexec;
+
+    public NoButtonCommandBlockScreen(CommandBlockEntity tileEntity) {
+	super(NarratorChatListener.NO_TITLE);
+	this.autoCommandBlock = tileEntity;
+    }
+
+    BaseCommandBlock getCommandBlock() {
+	return this.autoCommandBlock.getCommandBlock();
+    }
+
+    int getPreviousY() {
+	return 135;
+    }
+
+    @Override
+    protected void init() {
+	this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
+//	this.doneButton = this.addRenderableWidget(new Button(this.width / 2 - 4 - 150, this.height / 4 + 120 + 12, 150,
+//	    20, CommonComponents.GUI_DONE, (p_97691_) -> {
+//		this.onDone();
+//	    }));
+//	this.cancelButton = this.addRenderableWidget(new Button(this.width / 2 + 4, this.height / 4 + 120 + 12, 150, 20,
+//	    CommonComponents.GUI_CANCEL, (p_97687_) -> {
+//		this.onClose();
+//	    }));
+	boolean flag = this.getCommandBlock().isTrackOutput();
+//	this.outputButton = this
+//	    .addRenderableWidget(CycleButton.booleanBuilder(new TextComponent("O"), new TextComponent("X"))
+//		.withInitialValue(flag).displayOnlyValue().create(this.width / 2 + 150 - 20, this.getPreviousY(), 20,
+//		    20, new TranslatableComponent("advMode.trackOutput"), (p_169596_, p_169597_) -> {
+//			BaseCommandBlock basecommandblock = this.getCommandBlock();
+//			basecommandblock.setTrackOutput(p_169597_);
+//			this.updatePreviousOutput(p_169597_);
+//		    }));
+	this.commandEdit = new EditBox(this.font, this.width / 2 - 150, 50, 300, 20,
+	    new TranslatableComponent("advMode.command")) {
+	    @Override
+	    protected MutableComponent createNarrationMessage() {
+		return super.createNarrationMessage()
+		    .append(commandSuggestions.getNarrationMessage());
+	    }
+	};
+	this.commandEdit.setMaxLength(32500);
+	this.commandEdit.setResponder(this::onEdited);
+	this.addWidget(this.commandEdit);
+	this.previousEdit = new EditBox(this.font, this.width / 2 - 150, this.getPreviousY(), 276, 20,
+	    new TranslatableComponent("advMode.previousOutput"));
+	this.previousEdit.setMaxLength(32500);
+	this.previousEdit.setEditable(false);
+	this.previousEdit.setValue("-");
+	this.addWidget(this.previousEdit);
+	this.setInitialFocus(this.commandEdit);
+	this.commandEdit.setFocus(true);
+	this.commandSuggestions = new CommandSuggestions(this.minecraft, this, this.commandEdit, this.font, true, true,
+	    0, 7, false, Integer.MIN_VALUE);
+	this.commandSuggestions.setAllowSuggestions(true);
+	this.commandSuggestions.updateCommandInfo();
+	this.updatePreviousOutput(flag);
+
+	this.modeButton = this.addRenderableWidget(CycleButton.<CommandBlockEntity.Mode>builder((p_169719_) -> {
+	    switch (p_169719_) {
+		case SEQUENCE:
+		    return new TranslatableComponent("advMode.mode.sequence");
+		case AUTO:
+		    return new TranslatableComponent("advMode.mode.auto");
+		case REDSTONE:
+		default:
+		    return new TranslatableComponent("advMode.mode.redstone");
+	    }
+	}).withValues(CommandBlockEntity.Mode.values()).displayOnlyValue().withInitialValue(this.mode).create(
+	    this.width / 2 - 50 - 100 - 4, 165, 100, 20, new TranslatableComponent("advMode.mode"),
+	    (p_169721_, p_169722_) -> {
+		this.mode = p_169722_;
+	    }));
+	this.conditionalButton = this.addRenderableWidget(CycleButton
+	    .booleanBuilder(new TranslatableComponent("advMode.mode.conditional"),
+		new TranslatableComponent("advMode.mode.unconditional"))
+	    .displayOnlyValue().withInitialValue(this.conditional).create(this.width / 2 - 50, 165, 100, 20,
+		new TranslatableComponent("advMode.type"), (p_169727_, p_169728_) -> {
+		    this.conditional = p_169728_;
+		}));
+	this.autoexecButton = this.addRenderableWidget(CycleButton
+	    .booleanBuilder(new TranslatableComponent("advMode.mode.autoexec.bat"),
+		new TranslatableComponent("advMode.mode.redstoneTriggered"))
+	    .displayOnlyValue().withInitialValue(this.autoexec).create(this.width / 2 + 50 + 4, 165, 100, 20,
+		new TranslatableComponent("advMode.triggering"), (p_169724_, p_169725_) -> {
+		    this.autoexec = p_169725_;
+		}));
+	this.enableControls(false);
+    }
+
+    private void enableControls(boolean p_169730_) {
+	this.modeButton.active = p_169730_;
+	this.conditionalButton.active = p_169730_;
+	this.autoexecButton.active = p_169730_;
+    }
+
+    public void updateGui() {
+	BaseCommandBlock basecommandblock = this.autoCommandBlock.getCommandBlock();
+	this.commandEdit.setValue(basecommandblock.getCommand());
+	boolean flag = basecommandblock.isTrackOutput();
+	this.mode = this.autoCommandBlock.getMode();
+	this.conditional = this.autoCommandBlock.isConditional();
+	this.autoexec = this.autoCommandBlock.isAutomatic();
+	this.modeButton.setValue(this.mode);
+	this.conditionalButton.setValue(this.conditional);
+	this.autoexecButton.setValue(this.autoexec);
+	this.updatePreviousOutput(flag);
+	this.enableControls(true);
+    }
+
+    @Override
+    public void resize(Minecraft minecraft, int width, int length) {
+	String s = this.commandEdit.getValue();
+	this.init(minecraft, width, length);
+	this.commandEdit.setValue(s);
+	this.commandSuggestions.updateCommandInfo();
+
+	this.enableControls(true);
+    }
+
+    protected void populateAndSendPacket(BaseCommandBlock p_98384_) {
+	this.minecraft.getConnection().send(new ServerboundSetCommandBlockPacket(new BlockPos(p_98384_.getPosition()),
+	    this.commandEdit.getValue(), this.mode, p_98384_.isTrackOutput(), this.conditional, this.autoexec));
+    }
+
+    @Override
+    public void tick() {
+	this.commandEdit.tick();
+    }
+
+    protected void updatePreviousOutput(boolean p_169599_) {
+	this.previousEdit.setValue(p_169599_ ? this.getCommandBlock().getLastOutput().getString() : "-");
+    }
+
+    protected void onDone() {
+	BaseCommandBlock basecommandblock = this.getCommandBlock();
+	this.populateAndSendPacket(basecommandblock);
+	if (!basecommandblock.isTrackOutput()) {
+	    basecommandblock.setLastOutput((Component) null);
+	}
+
+	this.minecraft.setScreen((Screen) null);
+    }
+
+    @Override
+    public void removed() {
+	this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
+    }
+
+    private void onEdited(String p_97689_) {
+	this.commandSuggestions.updateCommandInfo();
+    }
+
+    @Override
+    public boolean keyPressed(int p_97667_, int p_97668_, int p_97669_) {
+	if (this.commandSuggestions.keyPressed(p_97667_, p_97668_, p_97669_))
+	    return true;
+	else if (super.keyPressed(p_97667_, p_97668_, p_97669_))
+	    return true;
+	else if (p_97667_ != 257 && p_97667_ != 335)
+	    return false;
+	else {
+	    this.onDone();
+	    return true;
+	}
+    }
+
+    @Override
+    public boolean mouseScrolled(double p_97659_, double p_97660_, double p_97661_) {
+	return this.commandSuggestions.mouseScrolled(p_97661_) ? true
+	    : super.mouseScrolled(p_97659_, p_97660_, p_97661_);
+    }
+
+    @Override
+    public boolean mouseClicked(double p_97663_, double p_97664_, int p_97665_) {
+	return this.commandSuggestions.mouseClicked(p_97663_, p_97664_, p_97665_) ? true
+	    : super.mouseClicked(p_97663_, p_97664_, p_97665_);
+    }
+
+    @Override
+    public void render(PoseStack p_97672_, int p_97673_, int p_97674_, float p_97675_) {
+	this.renderBackground(p_97672_);
+	drawCenteredString(p_97672_, this.font, SET_COMMAND_LABEL, this.width / 2, 20, 16777215);
+	drawString(p_97672_, this.font, COMMAND_LABEL, this.width / 2 - 150, 40, 10526880);
+	this.commandEdit.render(p_97672_, p_97673_, p_97674_, p_97675_);
+	int i = 75;
+	if (!this.previousEdit.getValue().isEmpty()) {
+	    i += 5 * 9 + 1 + this.getPreviousY() - 135;
+	    drawString(p_97672_, this.font, PREVIOUS_OUTPUT_LABEL, this.width / 2 - 150, i + 4, 10526880);
+	    this.previousEdit.render(p_97672_, p_97673_, p_97674_, p_97675_);
+	}
+
+	super.render(p_97672_, p_97673_, p_97674_, p_97675_);
+	this.commandSuggestions.render(p_97672_, p_97673_, p_97674_);
+    }
+
+}
