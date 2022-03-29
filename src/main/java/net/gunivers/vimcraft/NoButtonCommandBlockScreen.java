@@ -35,6 +35,8 @@ public class NoButtonCommandBlockScreen extends Screen {
     private boolean conditional;
     private boolean autoexec;
 
+    private int updateTick = 10;
+
     public NoButtonCommandBlockScreen(CommandBlockEntity tileEntity) {
 	super(NarratorChatListener.NO_TITLE);
 	this.autoCommandBlock = tileEntity;
@@ -122,6 +124,7 @@ public class NoButtonCommandBlockScreen extends Screen {
 		new TranslatableComponent("advMode.triggering"), (p_169724_, p_169725_) -> {
 		    this.autoexec = p_169725_;
 		}));
+
 	this.enableControls(false);
     }
 
@@ -142,7 +145,6 @@ public class NoButtonCommandBlockScreen extends Screen {
 	this.conditionalButton.setValue(this.conditional);
 	this.autoexecButton.setValue(this.autoexec);
 	this.updatePreviousOutput(flag);
-	this.enableControls(true);
     }
 
     @Override
@@ -151,8 +153,6 @@ public class NoButtonCommandBlockScreen extends Screen {
 	this.init(minecraft, width, length);
 	this.commandEdit.setValue(s);
 	this.commandSuggestions.updateCommandInfo();
-
-	this.enableControls(true);
     }
 
     protected void populateAndSendPacket(BaseCommandBlock p_98384_) {
@@ -163,6 +163,11 @@ public class NoButtonCommandBlockScreen extends Screen {
     @Override
     public void tick() {
 	this.commandEdit.tick();
+
+	// TODO temp fix fox data packet update
+	if (updateTick > 0 && --updateTick <= 0) {
+	    updateGui();
+	}
     }
 
     protected void updatePreviousOutput(boolean p_169599_) {
