@@ -1,0 +1,8 @@
+{
+    "package": "net.gunivers.vimcraft.mixin",
+    "client": [
+        "ClientListenerMixin"
+    ],
+    "required": true,
+    "minVersion": "0.8"
+}

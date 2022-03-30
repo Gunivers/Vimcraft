@@ -35,8 +35,6 @@ public class NoButtonCommandBlockScreen extends Screen {
     private boolean conditional;
     private boolean autoexec;
 
-    private int updateTick = 10;
-
     public NoButtonCommandBlockScreen(CommandBlockEntity tileEntity) {
 	super(NarratorChatListener.NO_TITLE);
 	this.autoCommandBlock = tileEntity;
@@ -163,11 +161,6 @@ public class NoButtonCommandBlockScreen extends Screen {
     @Override
     public void tick() {
 	this.commandEdit.tick();
-
-	// TODO temp fix fox data packet update
-	if (updateTick > 0 && --updateTick <= 0) {
-	    updateGui();
-	}
     }
 
     protected void updatePreviousOutput(boolean p_169599_) {
