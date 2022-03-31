@@ -186,81 +186,17 @@ public class NoButtonCommandBlockScreen extends Screen {
         this.commandSuggestions.updateCommandInfo();
     }
 
-    // TODO solution 2
+    // Manage char typing, can be usefull when managin character input outside of a
+    // widget
 //    @Override
 //    public boolean charTyped(char character, int modifiers) {
-//	long windowId = minecraft.getWindow().getWindow();
-//
-//	if (InputConstants.isKeyDown(windowId, GLFW.GLFW_KEY_ESCAPE)) {
-//	    if (character == InputConstants.KEY_Q) {
-//		this.onClose();
-//		return true;
-//	    } else if (character == InputConstants.KEY_X) {
-//		this.onDone();
-//		return true;
-//	    }
-//	} else if (InputConstants.isKeyDown(windowId, GLFW.GLFW_KEY_RIGHT_ALT)) {
-//	    if (character == InputConstants.KEY_C) {
-//		modeButton.onPress();
-//		return true;
-//	    } else if (character == InputConstants.KEY_A) {
-//		conditionalButton.onPress();
-//		return true;
-//	    } else if (character == InputConstants.KEY_R) {
-//		autoexecButton.onPress();
-//		return true;
-//	    } else if (character == InputConstants.KEY_O) {
-//		toggleOutput();
-//		return true;
-//	    }
-//	}
-//
 //	return super.charTyped(character, modifiers);
 //    }
 
-    // TODO solution 3 : Doesn't work
-//    @Override
-//    public boolean keyPressed(int keyCode, int x, int y) {
-//	long windowId = minecraft.getWindow().getWindow();
-//	Character character = KeyUtils.getCharacter(GLFW.glfwGetKeyScancode(keyCode));
-//
-//	System.out.println(character);
-//
-//	if (this.commandSuggestions.keyPressed(keyCode, x, y))
-//	    return true;
-//	else if (super.keyPressed(keyCode, x, y))
-//	    return true;
-//	else if (character != null) {
-//	    if (InputConstants.isKeyDown(windowId, GLFW.GLFW_KEY_ESCAPE)) {
-//		if (character == 'q') {
-//		    this.onClose();
-//		    return true;
-//		} else if (keyCode == 'x') {
-//		    this.onDone();
-//		    return true;
-//		} else
-//		    return false;
-//	    } else if (InputConstants.isKeyDown(windowId, GLFW.GLFW_KEY_RIGHT_ALT)) {
-//		if (keyCode == 'c') {
-//		    modeButton.onPress();
-//		    return true;
-//		} else if (keyCode == 'a') {
-//		    conditionalButton.onPress();
-//		    return true;
-//		} else if (keyCode == 'r') {
-//		    autoexecButton.onPress();
-//		    return true;
-//		} else if (keyCode == 'o') {
-//		    toggleOutput();
-//		    return true;
-//		} else
-//		    return false;
-//	    } else
-//		return false;
-//	} else
-//	    return false;
-//    }
-
+    /**
+     * Manage key inputs.<br>
+     * Warning : The Key inputs are not keyboard localized.
+     */
     @Override
     public boolean keyPressed(int keyCode, int x, int y) {
         long windowId = minecraft.getWindow().getWindow();
