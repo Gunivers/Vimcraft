@@ -3,9 +3,6 @@ package net.gunivers.vimcraft.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.gunivers.vimcraft.NoButtonCommandBlockScreen;
 import net.minecraft.client.Minecraft;
@@ -16,7 +13,6 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketUtils;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.CommandBlockEntity;
 
 @Mixin(ClientPacketListener.class)
@@ -26,14 +22,6 @@ public abstract class ClientListenerMixin implements ClientGamePacketListener {
     private Minecraft minecraft;
     @Shadow
     private Connection connection;
-
-    @Inject(method = "lambda$handleBlockEntityData$5", at = @At(value = "RETURN"), require = 1)
-    private void onHandleBlockEntityData(ClientboundBlockEntityDataPacket packet, BlockEntity blockEntity,
-        CallbackInfo callback) {
-        if (blockEntity instanceof CommandBlockEntity && this.minecraft.screen instanceof NoButtonCommandBlockScreen) {
-            ((NoButtonCommandBlockScreen) this.minecraft.screen).updateGui();
-        }
-    }
 
     @Override
     @Overwrite
