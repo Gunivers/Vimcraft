@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.entity.CommandBlockEntity;
 @Mixin(CommandBlockEditScreen.class)
 public interface CommandBlockEditScreenMixin {
 
-    @Accessor
+    @Accessor(remap = true)
     CommandBlockEntity getAutoCommandBlock();
 
 }

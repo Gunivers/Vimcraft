@@ -66,10 +66,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', 'vimcraft'
 
             mods {
-                examplemod {
+                vimcraft {
                     source sourceSets.main
                 }
             }
@@ -83,10 +83,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', 'vimcraft'
 
             mods {
-                examplemod {
+                vimcraft {
                     source sourceSets.main
                 }
             }
@@ -111,10 +111,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', 'vimcraft'
 
             mods {
-                examplemod {
+                vimcraft {
                     source sourceSets.main
                 }
             }
@@ -131,7 +131,7 @@ minecraft {
             args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                examplemod {
+                vimcraft {
                     source sourceSets.main
                 }
             }
